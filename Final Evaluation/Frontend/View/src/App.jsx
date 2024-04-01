@@ -1,0 +1,50 @@
+import React from 'react'
+
+import { validateUserFromToken } from './APIs/AuthApi';
+import { Outlet } from "react-router-dom"
+import { useEffect, useState } from "react"
+import UserProvider from "../src/Context/UserContext"
+const App = () => {
+    const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState({
+        id: "",
+        name: "",
+        isAuth: false,
+    })
+
+    useEffect(() => {
+        const accessToken = localStorage.getItem("accessToken");
+        if (accessToken) {
+            (async() => {
+                const { data: userData, error } = await validateUserFromToken(accessToken);
+                if (error) {
+                    localStorage.removeItem("accessToken");
+                    setLoading(false);
+                    return;
+                }
+                login({...userData })
+                setLoading(false);
+            })();
+        } else setLoading(false);
+    }, [])
+
+    const login = ({ id, name }) => {
+        setUser({ id, name, isAuth: true })
+    }
+
+    const logout = () => {
+        setUser({ id: "", name: "", isAuth: false })
+    }
+    return (!loading ?
+        <
+        UserProvider value = {
+            { user, login, logout } } >
+        <
+        Outlet / >
+        <
+        /UserProvider> : <h1 className="center">Wait A Minute...Loading</h
+        1 >
+    )
+}
+
+export default App
